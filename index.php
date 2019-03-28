@@ -12,5 +12,5 @@ try {
     $api = new Service();
     echo $api->run();
 } catch (Exception $e) {
-    echo json_encode(Array('error' => $e->getMessage()));
+    echo json_encode(Array('message' => $e->getMessage(), 'code' => $e->getCode()));
 }

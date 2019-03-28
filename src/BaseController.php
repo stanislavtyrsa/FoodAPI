@@ -8,11 +8,10 @@
 
 abstract class BaseController extends Service implements IController
 {
-    public function execute(string $execMethod, array &$params, array &$uri, string $action, string $method)
+    public function execute(string $execMethod, array &$params, array &$uri, string $method)
     {
         $this->requestParams = $params;
         $this->method = $method;
-        $this->action = $action;
         $this->requestUri = $uri;
         $this->{$execMethod}();
     }

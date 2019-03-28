@@ -16,7 +16,6 @@ interface IService
     /**
      * @param $data
      * @param $errorCode
-     * @return string|null
      */
-    public function sendResponse($data, $errorCode = 500): ?string;
+    public function sendResponse($data, $errorCode = 500);
 }

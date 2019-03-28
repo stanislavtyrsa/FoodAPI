@@ -12,9 +12,8 @@ interface IController
      * @param string $execMethod
      * @param array $params
      * @param array $uri
-     * @param string $action
      * @param string $method
      * @return mixed
      */
-    public function execute(string $execMethod, array &$params, array &$uri, string $action, string $method);
+    public function execute(string $execMethod, array &$params, array &$uri, string $method);
 }

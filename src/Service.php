@@ -40,21 +40,26 @@ class Service implements IService
      */
     public function __construct()
     {
-        header("Access-Control-Allow-Orgin: *");
+        header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Methods: *");
         header("Content-Type: application/json");
         $this->requestUri = explode('/', trim($_SERVER['REQUEST_URI'], '/'));
-        $this->requestParams = $_REQUEST;
         $this->method = $_SERVER['REQUEST_METHOD'];
 
-        if ($this->method == self::HTTP_POST && array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)) {
-            if ($_SERVER['HTTP_X_HTTP_METHOD'] == self::HTTP_DELETE) {
-                $this->method = self::HTTP_DELETE;
-            } else if ($_SERVER['HTTP_X_HTTP_METHOD'] == self::HTTP_PUT) {
-                $this->method = self::HTTP_PUT;
-            } else {
-                throw new Exception("Unexpected Header");
+        if ($this->method == self::HTTP_POST) {
+            $this->requestParams = json_decode(file_get_contents('php://input'), true, 512, JSON_BIGINT_AS_STRING);
+            if (array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)) {
+                if ($_SERVER['HTTP_X_HTTP_METHOD'] == self::HTTP_DELETE) {
+                    $this->method = self::HTTP_DELETE;
+                } else if ($_SERVER['HTTP_X_HTTP_METHOD'] == self::HTTP_PUT) {
+                    $this->method = self::HTTP_PUT;
+                } else {
+                    throw new Exception("Unexpected Header");
+                }
             }
+        } else if ($this->method == self::HTTP_GET) {
+
+            $this->requestParams = $_REQUEST;
         }
     }
 
@@ -78,7 +83,7 @@ class Service implements IService
     {
         return [
             'order' => [
-                self::EXEC_CONTROLLER => BaseController::class,
+                self::EXEC_CONTROLLER => OrderController::class,
                 'createOrder' => [
                     self::EXEC_METHOD => 'createOrder',
                     self::EXEC_METHODS => self::HTTP_POST
@@ -102,10 +107,10 @@ class Service implements IService
     /**
      * @inheritdoc
      */
-    public function sendResponse($data, $errorCode = 500): ?string
+    public function sendResponse($data, $errorCode = 500)
     {
         header("HTTP/1.1 " . $errorCode . " " . $this->getStatus($errorCode));
-        return json_encode($data);
+        echo json_encode(Array('message' => $data, 'code' => $errorCode));
     }
 
     /**
@@ -113,17 +118,20 @@ class Service implements IService
      */
     public function run()
     {
-        $this->action = $this->getAction();
+        $action = $this->getAction();
         if (array_shift($this->requestUri) !== 'api') {
             throw new RuntimeException('API Not Found', self::HTTP_NOT_FOUND);
         }
         $controllerName = array_shift($this->requestUri);
-        $controllerInfo = $this->action[$controllerName] ?? null;
+        $controllerInfo = $action[$controllerName] ?? null;
         if ($controllerInfo === null) {
             throw new RuntimeException('Controller Not Found', self::HTTP_NOT_FOUND);
         }
 
         $methodURI = array_shift($this->requestUri);
+        if ($this->method === self::HTTP_GET) {
+            $methodURI = explode('?', $methodURI)[0];
+        }
         $methodRoute = $controllerInfo[$methodURI] ?? null;
         if ($methodRoute === null) {
             throw new RuntimeException('Method Not Found', self::HTTP_NOT_FOUND);
@@ -133,10 +141,9 @@ class Service implements IService
         if ($this->method !== $httpMethod) {
             throw new RuntimeException("{$methodURI} does not support method {$this->method}", self::HTTP_NOT_FOUND);
         }
-
         $controller = $controllerInfo[self::EXEC_CONTROLLER];
         /** @var IController $instance */
         $instance = new $controller();
-        return $instance->execute($executableMethod, $this->requestParams, $this->requestUri, $this->action, $this->method);
+        return $instance->execute($executableMethod, $this->requestParams, $this->requestUri,  $this->method);
     }
 }
