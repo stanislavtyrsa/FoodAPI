@@ -124,6 +124,9 @@ class PDOProvider
         foreach ($data as $record) {
             $id = $record['id'];
             unset($record['id']);
+            if ($id === null) {
+                throw new Exception('ID field not found');
+            }
             $keys = array_keys($record);
             $values = array_values($record);
             $query = "UPDATE {$dbName} SET ";
