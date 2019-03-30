@@ -110,7 +110,7 @@ class Service implements IService
     public function sendResponse($data, $errorCode = 500)
     {
         header("HTTP/1.1 " . $errorCode . " " . $this->getStatus($errorCode));
-        echo json_encode(Array('message' => $data, 'code' => $errorCode));
+        print_r(json_encode(Array('message' => $data, 'code' => $errorCode)));
     }
 
     /**

@@ -8,6 +8,8 @@
 
 abstract class BaseController extends Service implements IController
 {
+    const ID = 'id';
+
     public function execute(string $execMethod, array &$params, array &$uri, string $method)
     {
         $this->requestParams = $params;
@@ -16,13 +18,21 @@ abstract class BaseController extends Service implements IController
         $this->{$execMethod}();
     }
 
-
     /**
      * @param $param
      * @return mixed|null
      */
-    private function get($param)
+    protected function get($param)
     {
-        return $this->params[$param] ?? null;
+        return $this->requestParams[$param] ?? null;
     }
+
+    /**
+     * @return array
+     */
+    public function getRequestParams(): array
+    {
+        return $this->requestParams;
+    }
+
 }

@@ -11,4 +11,5 @@ require_once 'src/IController.php';
 require_once 'src/Service.php';
 require_once 'src/BaseController.php';
 require_once 'src/OrderController.php';
+require_once 'src/PDOProvider.php';
 
